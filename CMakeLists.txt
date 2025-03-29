@@ -16,7 +16,7 @@ endif()
 set(PICO_BOARD pico CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
-project(m1p1-spec C CXX ASM)
+project(alf C CXX ASM)
 
 option(I2S "Enable I2S sound" OFF)
 option(I2S_CS4334 "Enable I2S CS4334 sound" OFF)
@@ -29,17 +29,16 @@ option(SOFTTV "Enable TV soft composite output" OFF)
 
 set (PORT_VERSION "1.2.9")
 
-#set(I2S ON)
+set(I2S ON)
 
 ##set(TV ON)
 #set(SOFTTV ON)
-#set(TFT ON)
-#set(TFT_INV 0)
-#set(ILI9341 ON)
+set(TFT ON)
+set(TFT_INV 1)
+set(ILI9341 ON)
 #set(HDMI ON)
 
 #set (MURM2 ON)
-#set (MONSTR ON)
 set(KBDUSB ON)
 
 set(FLASH_SIZE 2048)
@@ -54,7 +53,7 @@ ENDIF()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}  -funroll-loops -ffast-math -feliminate-unused-debug-types -ffunction-sections -fdata-sections -O2")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wno-incompatible-pointer-types -funroll-loops -ffast-math -feliminate-unused-debug-types -ffunction-sections -fdata-sections -O2")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -feliminate-unused-debug-types -ffunction-sections -fdata-sections -O2")
 
 pico_sdk_init()
@@ -89,12 +88,25 @@ message(STATUS "")
 
 add_executable(${PROJECT_NAME} ${SRC})
 
-pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
-target_compile_definitions(slower_boot2 PRIVATE PICO_FLASH_SPI_CLKDIV=4)
-pico_set_boot_stage2(${PROJECT_NAME} slower_boot2)
+if (PICO_BOARD MATCHES "pico2")
+    if (MURM20)
+        SET(BUILD_NAME "m2p2-${PROJECT_NAME}")
+    else ()
+        SET(BUILD_NAME "m1p2-${PROJECT_NAME}")
+    endif ()
+else ()
+    if (MURM20)
+        SET(BUILD_NAME "m2p1-${PROJECT_NAME}")
+    else ()
+        SET(BUILD_NAME "m1p1-${PROJECT_NAME}")
+    endif ()
+    pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
+    target_compile_definitions(slower_boot2 PRIVATE PICO_FLASH_SPI_CLKDIV=4)
+    pico_set_boot_stage2(${PROJECT_NAME} slower_boot2)
+endif ()
 
-pico_set_program_name(m1p1-spec "ESpectrum port for Murmulator - ALF TV GAME emulator by DnCraptor")
-pico_set_program_version(m1p1-spec "test")
+pico_set_program_name(alf "ESpectrum port for Murmulator - ALF TV GAME emulator by DnCraptor")
+pico_set_program_version(alf "test")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         src
@@ -141,15 +153,6 @@ ELSE()
     target_compile_definitions(${PROJECT_NAME} PRIVATE VGA_DRV)
     target_link_libraries(${PROJECT_NAME} PRIVATE vga-nextgen)
     SET(BUILD_NAME "${BUILD_NAME}-VGA-${PORT_VERSION}")
-ENDIF()
-
-IF(FLASH_SIZE_GREEN)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        NO_SPAIN_ROM_48k=1
-        NO_SPAIN_ROM_128k=1
-        CARTRIDGE_AS_CUSTOM=1
-        NO_SEPARATE_48K_CUSTOM=1
-    )
 ENDIF()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${BUILD_NAME}")
