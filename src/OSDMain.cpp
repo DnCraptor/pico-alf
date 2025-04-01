@@ -927,6 +927,37 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                                         break;
                                     }
                                 }
+                            } else if (opt2 == 4) {
+                                // WASD
+                                menu_level = 3;
+                                menu_curopt = 1;
+                                menu_saverect = true;
+                                while (1) {
+                                    string csasjoy_menu = MENU_WASD[Config::lang];
+                                    csasjoy_menu += MENU_YESNO[Config::lang];
+                                    bool prev_opt = Config::wasd;
+                                    if (prev_opt) {
+                                        csasjoy_menu.replace(csasjoy_menu.find("[Y",0),2,"[*");
+                                        csasjoy_menu.replace(csasjoy_menu.find("[N",0),2,"[ ");                        
+                                    } else {
+                                        csasjoy_menu.replace(csasjoy_menu.find("[Y",0),2,"[ ");
+                                        csasjoy_menu.replace(csasjoy_menu.find("[N",0),2,"[*");                        
+                                    }
+                                    uint8_t opt2 = menuRun(csasjoy_menu);
+                                    if (opt2) {
+                                        if (opt2 == 1)
+                                            Config::wasd = true;
+                                        else
+                                            Config::wasd = false;
+                                        Config::save();
+                                        menu_curopt = opt2;
+                                        menu_saverect = false;
+                                    } else {
+                                        menu_curopt = 4;
+                                        menu_level = 2;                                       
+                                        break;
+                                    }
+                                }
                             } else {
                                 menu_curopt = 3;
                                 break;
@@ -3507,10 +3538,14 @@ static const char *MENU_JOYSELKEY[2] = { MENU_JOYSELKEY_EN, MENU_JOYSELKEY_ES };
 	"8\n"\
 	"9\n"
 
-#define MENU_JOY_SPECIAL "Enter\n"\
+#define MENU_JOY_SPECIAL\
+    "Enter\n"\
     "Caps\n"\
     "SymbShift\n"\
     "Brk/Space\n"\
+    "Backspace\n"\
+    "KP 0/Ins\n"\
+    "KP ./Del\n"\
     "None\n"
 
 #define MENU_JOY_PS2 "PS/2\n"\
@@ -3623,6 +3658,12 @@ case fabgl::VK_Z:
     return "    Z    ";
 case fabgl::VK_RETURN:
     return "  Enter  ";
+case fabgl::VK_BACKSPACE:
+    return "Backspace";
+case fabgl::VK_KP_0:
+    return "KP 0/Ins ";
+case fabgl::VK_KP_PERIOD:
+    return "KP ./Del ";
 case fabgl::VK_SPACE:
     return "Brk/Space";
 case fabgl::VK_LSHIFT:

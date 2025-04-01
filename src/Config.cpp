@@ -26,6 +26,7 @@ bool     Config::tape_player = false; // Tape player mode
 volatile bool Config::real_player = false;
 bool     Config::tape_timing_rg = false; // Rodolfo Guerra ROMs tape timings
 bool     Config::rightSpace = true;
+bool     Config::wasd = true;
 uint16_t Config::breakPoint = 0xFFFF;
 uint16_t Config::portReadBP = 0xFFFF;
 uint16_t Config::portWriteBP = 0xFFFF;
@@ -152,6 +153,7 @@ void Config::load() {
         nvs_get_b("Issue2", Issue2, sts);
         nvs_get_b("flashload", flashload, sts);
         nvs_get_b("rightSpace", rightSpace, sts);
+        nvs_get_b("wasd", wasd, sts);
         nvs_get_u16("breakPoint", breakPoint, sts);
         nvs_get_u16("portReadBP", portReadBP, sts);
         nvs_get_u16("portWriteBP", portWriteBP, sts);
@@ -252,6 +254,7 @@ void Config::save() {
         nvs_set_str(handle,"tape_player", tape_player ? "true" : "false");
         nvs_set_str(handle,"real_player", real_player ? "true" : "false");
         nvs_set_str(handle,"rightSpace", rightSpace ? "true" : "false");
+        nvs_set_str(handle,"wasd", wasd ? "true" : "false");
         nvs_set_str(handle,"tape_timing_rg",tape_timing_rg ? "true" : "false");
         nvs_set_u16(handle,"breakPoint", Config::breakPoint);
         nvs_set_u16(handle,"portReadBP", Config::portReadBP);

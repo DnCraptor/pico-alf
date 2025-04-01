@@ -582,7 +582,8 @@ static const char *MENU_DEFJOY[2] = { MENU_DEFJOY_TITLE MENU_DEFJOYS MENU_DEFJOY
   "Joystick emulation\n"\
 	"Cursor Keys as Joy\t>\n" \
 	"TAB as fire 1\t>\n"\
-	"Right Enter\t>\n"
+	"Right Enter\t>\n"\
+	"WASD\t>\n"
 
 #define MENU_JOYPS2_ES \
   "Joystick emulaci" \
@@ -597,6 +598,8 @@ static const char *MENU_CURSORJOY[2] = { "Cursor as Joy\n" , "Joy en Cursor\n" }
 static const char *MENU_TABASFIRE[2] = { "TAB as fire 1\n" , "TAB disparo 1\n" };
 
 static const char *MENU_ENTERSPACE[2] = { "as Space\n" , "como Space\n" };
+
+static const char *MENU_WASD[2] = { "WASD\n" , "WASD\n" };
 
 #define DEDICATORIA "\nF1Dedicado especialmente a:\r"\
 	"\nB1      _       _ _\r"\

@@ -27,12 +27,12 @@ option(HDMI "Enable HDMI display" OFF)
 option(TV "Enable TV composite output" OFF)
 option(SOFTTV "Enable TV soft composite output" OFF)
 
-set (PORT_VERSION "1.2.9")
+set (PORT_VERSION "1.2.A")
 
 #set(I2S ON)
 
 ##set(TV ON)
-#set(SOFTTV ON)
+set(SOFTTV ON)
 #set(TFT ON)
 #set(TFT_INV 1)
 #set(ILI9341 ON)
