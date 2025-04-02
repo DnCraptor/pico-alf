@@ -657,6 +657,14 @@ void kbdExtraMapping(fabgl::VirtualKey virtualKey, bool pressed) {
             kbdPushData(Config::rightSpace ? fabgl::VirtualKey::VK_SPACE : fabgl::VirtualKey::VK_RETURN, pressed);
             return;
         }
+        case fabgl::VirtualKey::VK_P: {
+            if (Config::wasd) kbdPushData(fabgl::VirtualKey::VK_DPAD_FIRE, pressed);
+            break;
+        }
+        case fabgl::VirtualKey::VK_O: {
+            if (Config::wasd) kbdPushData(fabgl::VirtualKey::VK_DPAD_ALTFIRE, pressed);
+            break;
+        }
 
         case fabgl::VirtualKey::VK_BACKSPACE: joyPushData(fabgl::VirtualKey::VK_MENU_BS, pressed); break;
         case fabgl::VirtualKey::VK_SPACE:     joyPushData(fabgl::VirtualKey::VK_MENU_ENTER, pressed); break;

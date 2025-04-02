@@ -1043,12 +1043,20 @@ void ESPectrum::loop() {
         }
         if (AY_emu) {
             if (faudbufcntAY < samplesPerFrame) {
-                chip0.gen_sound(samplesPerFrame - faudbufcntAY , faudbufcntAY);
-                chip1.gen_sound(samplesPerFrame - faudbufcntAY , faudbufcntAY);
+                if(Config::turbosound != 0 || AySound::selected_chip == 0) chip0.gen_sound(samplesPerFrame - faudbufcntAY , faudbufcntAY);
+                if(Config::turbosound != 0 || AySound::selected_chip == 1) chip1.gen_sound(samplesPerFrame - faudbufcntAY , faudbufcntAY);
             }
             for (int i = 0; i < samplesPerFrame; i++) {
-                int beeper_L = (overSamplebuf[i] / audioSampleDivider) + chip0.SamplebufAY_L[i] + chip1.SamplebufAY_L[i];
-                int beeper_R = (overSamplebuf[i] / audioSampleDivider) + chip0.SamplebufAY_R[i] + chip1.SamplebufAY_R[i];
+                int beeper_L = overSamplebuf[i] / audioSampleDivider;
+                int beeper_R = overSamplebuf[i] / audioSampleDivider;
+                if(Config::turbosound != 0 || AySound::selected_chip == 0) {
+                    beeper_L += chip0.SamplebufAY_L[i];
+                    beeper_R += chip0.SamplebufAY_R[i];
+                }
+                if(Config::turbosound != 0 || AySound::selected_chip == 1) {
+                    beeper_L += chip1.SamplebufAY_L[i];
+                    beeper_R += chip1.SamplebufAY_R[i];
+                }
                 audioBuffer_L[i] = beeper_L > 255 ? 255 : beeper_L; // Clamp
                 audioBuffer_R[i] = beeper_R > 255 ? 255 : beeper_R; // Clamp
             }

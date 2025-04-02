@@ -52,7 +52,7 @@ uint16_t Config::joydef[12] = {
 
 uint8_t  Config::AluTiming = 0;
 uint8_t  Config::ayConfig = 0;
-uint8_t  Config::turbosound = 3; // BOTH
+uint8_t  Config::turbosound = 0; // OFF
 uint8_t  Config::joy2cursor = true;
 uint8_t  Config::secondJoy = 2; // NPAD#2
 uint8_t  Config::kempstonPort = 0x37;
