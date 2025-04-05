@@ -561,8 +561,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
             uint8_t opt = menuRun("ESPectrum " + Config::arch + "\n" +
                 (!FileUtils::fsMount ? MENU_MAIN_NO_SD[Config::lang] : MENU_MAIN[Config::lang])
             );
-            if (opt == 1) { // About
-
+            if (opt == 1) { // Volume
                 if (VIDEO::OSD == 0) {
                     if (Config::aspect_16_9) 
                         VIDEO::Draw_OSD169 = VIDEO::MainScreen_OSD;
@@ -574,10 +573,6 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                 ESPectrum::totalseconds = 0;
                 ESPectrum::totalsecondsnodelay = 0;
                 VIDEO::framecnt = 0;
-                if (ESPectrum::aud_volume<ESP_VOLUME_MAX) {
-                    ESPectrum::aud_volume++;
-                    pwm_audio_set_volume(ESPectrum::aud_volume);
-                }
                 unsigned short x, y;
                 if (Config::aspect_16_9) {
                     x = 156;
@@ -594,7 +589,6 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                 for (int i = 0; i < ESPectrum::aud_volume + 16; i++) {
                     VIDEO::vga.fillRect(x + 26 + (i * 7) , y + 1, 6, 7, zxColor( 7, 0));
                 }
-    
                 click();
                 return;
             }
@@ -3147,20 +3141,21 @@ void OSD::HWInfo() {
 }
 
 static void __not_in_flash_func(flash_block)(const uint8_t* buffer, size_t flash_target_offset) {
+    // ensure it is required to write block (may be, it is already the same)
+    for (size_t i = 0; i < 512; ++i) {
+        if (buffer[i] != *(uint8_t*)(XIP_BASE + flash_target_offset + i)) {
+            goto flash_it;
+        }
+    }
+    return;
+flash_it:
     gpio_put(PICO_DEFAULT_LED_PIN, true);
     multicore_lockout_start_blocking();
     const uint32_t ints = save_and_disable_interrupts();
+    if (flash_target_offset % FLASH_SECTOR_SIZE == 0) { // cleanup_block
+        flash_range_erase(flash_target_offset, FLASH_SECTOR_SIZE);
+    }
     flash_range_program(flash_target_offset, buffer, 512);
-    restore_interrupts(ints);
-    multicore_lockout_end_blocking();
-    gpio_put(PICO_DEFAULT_LED_PIN, false);
-}
-
-static void __not_in_flash_func(cleanup_block)(size_t flash_target_offset) {
-    gpio_put(PICO_DEFAULT_LED_PIN, true);
-    multicore_lockout_start_blocking();
-    const uint32_t ints = save_and_disable_interrupts();
-    flash_range_erase(flash_target_offset, FLASH_SECTOR_SIZE);
     restore_interrupts(ints);
     multicore_lockout_end_blocking();
     gpio_put(PICO_DEFAULT_LED_PIN, false);
@@ -3211,15 +3206,12 @@ bool OSD::updateROM(const string& fname, uint8_t arch) {
         return false;
     }
     size_t flash_target_offset = (size_t)rom - XIP_BASE;
-    size_t max_flash_target_offset = flash_target_offset + max_rom_size;
-    for (size_t i = flash_target_offset; i < max_flash_target_offset; i += FLASH_SECTOR_SIZE) {
-        cleanup_block(i);
-    }
-
     UINT br;
     const size_t sz = 512;
     uint8_t* buffer = (uint8_t*)malloc(sz);
-    for (FSIZE_t i = 0; i < bytesfirmware; i += sz) {
+    FSIZE_t i = 0;
+    for (; i < bytesfirmware; i += sz) {
+        memset(buffer, 0, sz);
         if ( f_read(f, buffer, sz, &br) != FR_OK) {
             osdCenteredMsg(fname + " - unable to read", LEVEL_ERROR, 5000);
             fclose2(f);
@@ -3228,6 +3220,10 @@ bool OSD::updateROM(const string& fname, uint8_t arch) {
         flash_block(buffer, flash_target_offset + (size_t)(i & 0xFFFFFFFF));
     }
     fclose2(f);
+    memset(buffer, 0, sz);
+    for (; i < max_rom_size; i += sz) {
+        flash_block(buffer, flash_target_offset + (size_t)(i & 0xFFFFFFFF));
+    }
     free(buffer);
     Config::save();
 ///    Config::requestMachine(Config::arch, Config::romSet);
