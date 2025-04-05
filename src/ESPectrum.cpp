@@ -529,12 +529,11 @@ void ESPectrum::setup()
     MemESP::ram[7].assign_ram(new unsigned char[0x4000], 7, true);
 #endif
 
-    if (ext_ram_exist) { // TODO: specific no ext RAM for RP2350
+    if (ext_ram_exist) { // TODO: specific no ext RAM for RP2350/Alf
 #if !PICO_RP2040
-        for (size_t i = 8; i < 23; ++i) MemESP::ram[i].assign_ram(new unsigned char[0x4000], i, false);
-        for (size_t i = 23; i < 64+2; ++i) MemESP::ram[i].assign_vram(i);
+        for (size_t i = 8; i < 10; ++i) MemESP::ram[i].assign_ram(new unsigned char[0x4000], i, false);
 #else
-        for (size_t i = 8; i < 64+2; ++i) MemESP::ram[i].assign_vram(i);
+        for (size_t i = 8; i < 10; ++i) MemESP::ram[i].assign_vram(i);
 #endif
     }
 

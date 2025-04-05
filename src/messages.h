@@ -276,6 +276,7 @@ static const char *MENU_BETADISK[2] = { MENU_BETADISK_EN,MENU_BETADISK_ES };
 static const char *MENU_BETADRIVE[2] = { MENU_BETADRIVE_EN,MENU_BETADRIVE_ES };
 
 #define MENU_MAIN_EN \
+    "Volume\n"\
     "Snapshot\t>\n"\
     "Reset\t>\n"\
     "Options\t>\n"\
@@ -283,6 +284,7 @@ static const char *MENU_BETADRIVE[2] = { MENU_BETADRIVE_EN,MENU_BETADRIVE_ES };
     "Help\n"\
     "About\n"
 #define MENU_MAIN_ES \
+    "Volumen\n"\
     "Snapshots\t>\n"\
     "Resetear\t>\n"\
     "Opciones\t>\n"\
@@ -292,12 +294,14 @@ static const char *MENU_BETADRIVE[2] = { MENU_BETADRIVE_EN,MENU_BETADRIVE_ES };
 static const char *MENU_MAIN[2] = { MENU_MAIN_EN, MENU_MAIN_ES };
 
 #define MENU_MAIN_NO_SD_EN \
+    "Volume\n"\
     "Reset\t>\n"\
     "Options\t>\n"\
     "Debug\t>\n"\
     "Help\n"\
     "About\n"
 #define MENU_MAIN_NO_SD_ES \
+    "Volumen\n"\
     "Resetear\t>\n"\
     "Opciones\t>\n"\
 	"Depurar\t\n"\

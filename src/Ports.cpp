@@ -117,7 +117,7 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
     uint8_t p8 = address & 0xFF;
         if (p8 == 0xFB) { // Hidden RAM on
             MemESP::newSRAM = true;
-            uint8_t* r0 = MemESP::ram[64 + MemESP::sramLatch].sync();
+            uint8_t* r0 = MemESP::ram[8 + MemESP::sramLatch].sync();
             if (MemESP::ramCurrent[0] != r0) {
                 MemESP::ramCurrent[0] = r0;
             }
@@ -158,7 +158,7 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
         if (ia && bitRead(p8, 7) == 0) {
             if (bitRead(p8, 1) == 0) { // 1D
                 MemESP::newSRAM = true;
-                uint8_t* r0 = MemESP::ram[64 + MemESP::sramLatch].sync();
+                uint8_t* r0 = MemESP::ram[8 + MemESP::sramLatch].sync();
                 if (MemESP::ramCurrent[0] != r0) {
                     MemESP::ramCurrent[0] = r0;
                 }
@@ -250,7 +250,7 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
                     }
                     MemESP::romLatch = bitRead(data, 4);
                     MemESP::romInUse = MemESP::romLatch;
-                    uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[64 + MemESP::sramLatch].sync() :
+                    uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[8 + MemESP::sramLatch].sync() :
                                   (MemESP::page0ram ? MemESP::ram[0].sync() : MemESP::rom[MemESP::romInUse].direct());
                     if (MemESP::ramCurrent[0] != r0) {
                         MemESP::ramCurrent[0] = r0;
@@ -284,7 +284,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
             }
             MemESP::romInUse = (data & 0b01111111);
             while (MemESP::romInUse >= 64) MemESP::romInUse -= 64; // rolling ROM
-            uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[64 + MemESP::sramLatch].sync() : MemESP::rom[MemESP::romInUse].direct();
+            uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[8 + MemESP::sramLatch].sync() : MemESP::rom[MemESP::romInUse].direct();
             if (MemESP::ramCurrent[0] != r0) {
                 MemESP::ramCurrent[0] = r0;
             }
@@ -387,7 +387,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
             MemESP::page0ram = bitRead(data, 3);
             if (MemESP::page0ram != prev) {
                 uint8_t* r0 = MemESP::newSRAM ?
-                          MemESP::ram[64 + MemESP::sramLatch].sync() : 
+                          MemESP::ram[8 + MemESP::sramLatch].sync() : 
                           (MemESP::page0ram ? MemESP::ram[0].sync() : MemESP::rom[MemESP::romInUse].direct());
                 if (MemESP::ramCurrent[0] != r0) {
                     MemESP::ramCurrent[0] = r0;
@@ -425,7 +425,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
                 MemESP::sramLatch = MemESP::romLatch;
             }
             uint8_t* r0 = MemESP::newSRAM ?
-                          MemESP::ram[64 + MemESP::sramLatch].sync() :
+                          MemESP::ram[8 + MemESP::sramLatch].sync() :
                          (MemESP::page0ram ? MemESP::ram[0].sync() : MemESP::rom[MemESP::romInUse].direct());
             if (MemESP::ramCurrent[0] != r0) {
                 MemESP::ramCurrent[0] = r0;

@@ -41,9 +41,12 @@ visit https://zxespectrum.speccy.org/contacto
 std::list<mem_desc_t> mem_desc_t::pages;
 
 static FIL f;
-static const char PAGEFILE[] = "/tmp/pico-spec.512k";
+#if PICO_RP2040
+static const char PAGEFILE[] = "/tmp/pico-alf.page";
+#endif
 void mem_desc_t::reset(void) {
     pages.clear();
+#if PICO_RP2040
     if ( !psram_size() ) {
         f_close(&f);
         f_unlink(PAGEFILE); // ensure it is new file
@@ -51,6 +54,7 @@ void mem_desc_t::reset(void) {
         f_close(&f);
         f_open(&f, PAGEFILE, FA_READ | FA_WRITE);
     }
+#endif
 }
 
 uint8_t* mem_desc_t::to_vram(void) {
@@ -198,7 +202,7 @@ void mem_desc_t::cleanup() {
 }
 
 mem_desc_t MemESP::rom[64];
-mem_desc_t MemESP::ram[64 + 2];
+mem_desc_t MemESP::ram[8 + 2];
 bool MemESP::newSRAM = false;
 
 uint8_t* MemESP::ramCurrent[4];

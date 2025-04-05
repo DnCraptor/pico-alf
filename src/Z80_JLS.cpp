@@ -920,7 +920,7 @@ IRAM_ATTR void Z80::check_trdos() {
             if ((Z80Ops::is48) && (MemESP::romInUse == 0) || ((!Z80Ops::is48) && MemESP::romInUse == 1)) {
                 ESPectrum::trdos = true;
                 MemESP::romInUse = 4;
-                uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[64 + MemESP::sramLatch].sync() :
+                uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[8 + MemESP::sramLatch].sync() :
                              (MemESP::page0ram ? MemESP::ram[0].sync() : MemESP::rom[MemESP::romInUse].direct());
                 if (MemESP::ramCurrent[0] != r0) {
                     MemESP::ramCurrent[0] = r0;
@@ -942,7 +942,7 @@ IRAM_ATTR void Z80::check_trdos_unpage() {
                 }
             } else {
                 MemESP::romInUse = MemESP::romLatch;
-                uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[64 + MemESP::sramLatch].sync() :
+                uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[8 + MemESP::sramLatch].sync() :
                                         (MemESP::page0ram ? MemESP::ram[0].sync() : MemESP::rom[MemESP::romInUse].direct());
                 if (MemESP::ramCurrent[0] != r0) {
                     MemESP::ramCurrent[0] = r0;
@@ -956,7 +956,7 @@ IRAM_ATTR void Z80::check_trdos_unpage() {
             ) {
                 MemESP::romInUse = 4;
                 ESPectrum::trdos = true;
-                uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[64 + MemESP::sramLatch].sync() :
+                uint8_t* r0 = MemESP::newSRAM ? MemESP::ram[8 + MemESP::sramLatch].sync() :
                                         (MemESP::page0ram ? MemESP::ram[0].sync() : MemESP::rom[MemESP::romInUse].direct());
                 if (MemESP::ramCurrent[0] != r0) {
                     MemESP::ramCurrent[0] = r0;

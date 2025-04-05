@@ -13,7 +13,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico CACHE STRING "Board type")
+set(PICO_BOARD pico2 CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
 project(alf C CXX ASM)
@@ -27,7 +27,7 @@ option(HDMI "Enable HDMI display" OFF)
 option(TV "Enable TV composite output" OFF)
 option(SOFTTV "Enable TV soft composite output" OFF)
 
-set (PORT_VERSION "1.2.A")
+set (PORT_VERSION "1.2.B")
 
 #set(I2S ON)
 
@@ -38,7 +38,9 @@ set (PORT_VERSION "1.2.A")
 #set(ILI9341 ON)
 #set(HDMI ON)
 
+#set(ZERO ON)
 #set (MURM2 ON)
+
 set(KBDUSB ON)
 
 set(FLASH_SIZE 2048)
@@ -98,6 +100,8 @@ if (PICO_BOARD MATCHES "pico2")
 else ()
     if (MURM20)
         SET(BUILD_NAME "m2p1-${PROJECT_NAME}")
+    elseif (ZERO)
+        SET(BUILD_NAME "z0p1-${PROJECT_NAME}")
     else ()
         SET(BUILD_NAME "m1p1-${PROJECT_NAME}")
     endif ()
@@ -194,7 +198,65 @@ ELSE()
     target_compile_definitions(${PROJECT_NAME} PRIVATE KBDPS2)
 ENDIF()
 
-IF(MURM2)
+IF(ZERO)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        ZERO=1
+        PORT_VERSION="${PORT_VERSION}"
+        CPU_MHZ=${CPU_MHZ}
+
+        KBD_CLOCK_PIN=4
+        KBD_DATA_PIN=5
+
+        LOAD_WAV_PIO=14
+
+        BEEPER_PIN=10
+        PWM_PIN0=11
+        PWM_PIN1=12
+        SOUND_FREQUENCY=30600
+        I2S_FREQUENCY=30600
+
+        # SDCARD
+        SDCARD_PIN_SPI0_SCK=18
+        SDCARD_PIN_SPI0_MOSI=19
+        SDCARD_PIN_SPI0_MISO=20
+        SDCARD_PIN_SPI0_CS=21
+
+        #PSRAM
+        # PSRAM_MUTEX=1
+        PSRAM_SPINLOCK=1
+        PSRAM_ASYNC=1
+
+        PSRAM_PIN_SCK=18
+        PSRAM_PIN_MOSI=19
+        PSRAM_PIN_MISO=20
+        PSRAM_PIN_CS=21
+
+        # NES Gamepad
+      #  USE_NESPAD
+      #  NES_GPIO_CLK=20
+      #  NES_GPIO_LAT=21
+      #  NES_GPIO_DATA=26
+
+        # VGA 8 pins starts from pin:
+      #  VGA_BASE_PIN=12
+
+        # HDMI 8 pins starts from pin:
+        HDMI_BASE_PIN=22
+        #29
+        #2,3,16
+
+        # TFT
+#        TFT_CS_PIN=12
+#        TFT_RST_PIN=14
+#        TFT_LED_PIN=15
+#        TFT_DC_PIN=16
+#        TFT_DATA_PIN=18
+#        TFT_CLK_PIN=19
+        
+        PICO_FLASH_SIZE_BYTES=${FLASH_SIZE}*1024
+        DEFAULT_THROTTLING=0
+    )
+ELSEIF(MURM2)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         PORT_VERSION="${PORT_VERSION}"
         CPU_MHZ=${CPU_MHZ}

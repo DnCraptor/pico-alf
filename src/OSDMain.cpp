@@ -561,7 +561,44 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
             uint8_t opt = menuRun("ESPectrum " + Config::arch + "\n" +
                 (!FileUtils::fsMount ? MENU_MAIN_NO_SD[Config::lang] : MENU_MAIN[Config::lang])
             );
-            if (FileUtils::fsMount && opt == 1) {
+            if (opt == 1) { // About
+
+                if (VIDEO::OSD == 0) {
+                    if (Config::aspect_16_9) 
+                        VIDEO::Draw_OSD169 = VIDEO::MainScreen_OSD;
+                    else
+                        VIDEO::Draw_OSD43  = Z80Ops::isPentagon ? VIDEO::BottomBorder_OSD_Pentagon : VIDEO::BottomBorder_OSD;
+                    VIDEO::OSD = 0x04;
+                } else
+                    VIDEO::OSD |= 0x04;
+                ESPectrum::totalseconds = 0;
+                ESPectrum::totalsecondsnodelay = 0;
+                VIDEO::framecnt = 0;
+                if (ESPectrum::aud_volume<ESP_VOLUME_MAX) {
+                    ESPectrum::aud_volume++;
+                    pwm_audio_set_volume(ESPectrum::aud_volume);
+                }
+                unsigned short x, y;
+                if (Config::aspect_16_9) {
+                    x = 156;
+                    y = 180;
+                } else {
+                    x = 168;
+                    y = 224;
+                }
+                VIDEO::vga.fillRect(x ,y - 4, 24 * 6, 16, zxColor(1, 0));
+                VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(1, 0));
+                VIDEO::vga.setFont(Font6x8);
+                VIDEO::vga.setCursor(x + 4,y + 1);
+                VIDEO::vga.print(Config::tape_player ? "TAP" : "VOL");
+                for (int i = 0; i < ESPectrum::aud_volume + 16; i++) {
+                    VIDEO::vga.fillRect(x + 26 + (i * 7) , y + 1, 6, 7, zxColor( 7, 0));
+                }
+    
+                click();
+                return;
+            }
+            else if (FileUtils::fsMount && opt == 2) { // Snapshots 
                 // ***********************************************************************************
                 // SNAPSHOTS MENU
                 // ***********************************************************************************
@@ -625,12 +662,12 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                         }
                         menu_curopt = sna_mnu;
                     } else {
-                        menu_curopt = 1;
+                        menu_curopt = 2;
                         break;
                     }
                 }
             } 
-            else if (FileUtils::fsMount && opt == 2 || opt == 1) {
+            else if (FileUtils::fsMount && opt == 3 || opt == 2) { // Reset
                 // ***********************************************************************************
                 // RESET MENU
                 // ***********************************************************************************
@@ -674,12 +711,12 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                         f_unlink(MOUNT_POINT_SD STORAGE_NVS);
                         esp_hard_reset();
                     } else {
-                        menu_curopt = FileUtils::fsMount ? 2 : 1;
+                        menu_curopt = FileUtils::fsMount ? 3 : 2;
                         break;
                     }
                 }
             }
-            else if (FileUtils::fsMount && opt == 3 || opt == 2) {
+            else if (FileUtils::fsMount && opt == 4 || opt == 3) { // Options...
                 // ***********************************************************************************
                 // OPTIONS MENU
                 // ***********************************************************************************
@@ -1473,12 +1510,12 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                             }
                         }
                     } else {
-                        menu_curopt = FileUtils::fsMount ? 3 : 2;
+                        menu_curopt = FileUtils::fsMount ? 4 : 3;
                         break;
                     }
                 }
             }
-            else if (FileUtils::fsMount && opt == 4 || opt == 3) {
+            else if (FileUtils::fsMount && opt == 5 || opt == 4) { // Debug
                 // DEBUG MENU
                 menu_saverect = true;
                 menu_curopt = 1;            
@@ -1510,12 +1547,12 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                         Z80::triggerNMI();
                         return;
                     } else {
-                        menu_curopt = FileUtils::fsMount ? 4 : 3;
+                        menu_curopt = FileUtils::fsMount ? 5 : 4;
                         break;
                     }
                 }
             }
-            else if (FileUtils::fsMount && opt == 5 || opt == 4) {
+            else if (FileUtils::fsMount && opt == 6 || opt == 5) { // Help
                 // Help
                 drawOSD(true);
                 osdAt(2, 0);
@@ -1534,7 +1571,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool ALT) {
                 if (VIDEO::OSD) OSD::drawStats(); // Redraw stats for 16:9 modes                
                 return;
             }        
-            else if (FileUtils::fsMount && opt == 6 || opt == 5) {
+            else if (FileUtils::fsMount && opt == 7 || opt == 6) { // About
                 // About
                 drawOSD(false);
                 
