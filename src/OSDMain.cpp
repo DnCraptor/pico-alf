@@ -3149,7 +3149,9 @@ static void __not_in_flash_func(flash_block)(const uint8_t* buffer, size_t flash
     }
     return;
 flash_it:
+#if !ZERO
     gpio_put(PICO_DEFAULT_LED_PIN, flash_target_offset % (FLASH_SECTOR_SIZE << 2) == 0);
+#endif
     multicore_lockout_start_blocking();
     const uint32_t ints = save_and_disable_interrupts();
     if (flash_target_offset % FLASH_SECTOR_SIZE == 0) { // cleanup_block
@@ -3158,7 +3160,9 @@ flash_it:
     flash_range_program(flash_target_offset, buffer, 512);
     restore_interrupts(ints);
     multicore_lockout_end_blocking();
+#if !ZERO
     gpio_put(PICO_DEFAULT_LED_PIN, false);
+#endif
 }
 
 /**

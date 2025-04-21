@@ -13,7 +13,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_BOARD pico CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
 project(alf C CXX ASM)
@@ -36,23 +36,20 @@ set (PORT_VERSION "1.2.B")
 #set(TFT ON)
 #set(TFT_INV 1)
 #set(ILI9341 ON)
-#set(HDMI ON)
+set(HDMI ON)
+#set(HDMIA ON)
 
-#set(ZERO ON)
+set(ZERO ON)
 #set (MURM2 ON)
 
 set(KBDUSB ON)
 
 set(FLASH_SIZE 2048)
 set(FLASH_SIZE_GREEN ON)
-set(CPU_MHZ 378)
+#set(CPU_MHZ 252)
+set(CPU_MHZ 264)
+#set(CPU_MHZ 378)
 #set(CPU_MHZ 408)
-
-IF(MURM2)
-    SET(BUILD_NAME "m2-${PROJECT_NAME}-ALF-${FLASH_SIZE}-${CPU_MHZ}")
-ELSE()
-    SET(BUILD_NAME "${PROJECT_NAME}-ALF-${FLASH_SIZE}-${CPU_MHZ}")
-ENDIF()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -79,6 +76,7 @@ add_subdirectory(drivers/tv)
 add_subdirectory(drivers/tv-software)
 add_subdirectory(drivers/graphics)
 add_subdirectory(drivers/psram)
+add_subdirectory(drivers/libdvi)
 
 # INCLUDE FILES THAT SHOULD BE COMPILED:
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c" "fabgl/*.cpp" "src/roms/*.cpp" "src/roms/*.c" "src/miniz/*.c")
@@ -93,17 +91,17 @@ add_executable(${PROJECT_NAME} ${SRC})
 
 if (PICO_BOARD MATCHES "pico2")
     if (MURM20)
-        SET(BUILD_NAME "m2p2-${PROJECT_NAME}")
+        SET(BUILD_NAME "m2p2-${PROJECT_NAME}-${CPU_MHZ}")
     else ()
-        SET(BUILD_NAME "m1p2-${PROJECT_NAME}")
+        SET(BUILD_NAME "m1p2-${PROJECT_NAME}-${CPU_MHZ}")
     endif ()
 else ()
     if (MURM20)
-        SET(BUILD_NAME "m2p1-${PROJECT_NAME}")
+        SET(BUILD_NAME "m2p1-${PROJECT_NAME}-${CPU_MHZ}")
     elseif (ZERO)
-        SET(BUILD_NAME "z0p1-${PROJECT_NAME}")
+        SET(BUILD_NAME "z0p1-${PROJECT_NAME}-${CPU_MHZ}")
     else ()
-        SET(BUILD_NAME "m1p1-${PROJECT_NAME}")
+        SET(BUILD_NAME "m1p1-${PROJECT_NAME}-${CPU_MHZ}")
     endif ()
     pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
     target_compile_definitions(slower_boot2 PRIVATE PICO_FLASH_SPI_CLKDIV=4)
@@ -147,6 +145,10 @@ ELSEIF(HDMI)
     target_link_libraries(${PROJECT_NAME} PRIVATE hdmi)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HDMI)
     SET(BUILD_NAME "${BUILD_NAME}-HDMI-${PORT_VERSION}")
+ELSEIF(HDMIA)
+    target_link_libraries(${PROJECT_NAME} PRIVATE libdvi)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HDMIA)
+    SET(BUILD_NAME "${BUILD_NAME}-HDMIA-${PORT_VERSION}")
 ELSEIF(TV)
     target_compile_definitions(${PROJECT_NAME} PRIVATE TV)
     target_link_libraries(${PROJECT_NAME} PRIVATE tv)
@@ -199,19 +201,25 @@ ELSE()
 ENDIF()
 
 IF(ZERO)
+    set(DVI_DEFAULT_SERIAL_CONFIG "pico_pizero_cfg" CACHE STRING
+	    "Select a default pin configuration from common_dvi_pin_configs.h")
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         ZERO=1
         PORT_VERSION="${PORT_VERSION}"
+        DVI_DEFAULT_SERIAL_CONFIG=${DVI_DEFAULT_SERIAL_CONFIG}
         CPU_MHZ=${CPU_MHZ}
 
-        KBD_CLOCK_PIN=4
-        KBD_DATA_PIN=5
+        KBD_CLOCK_PIN=0
+        KBD_DATA_PIN=1
+
+        PICO_DEFAULT_LED_PIN=17
 
         LOAD_WAV_PIO=14
 
-        BEEPER_PIN=10
-        PWM_PIN0=11
-        PWM_PIN1=12
+        BEEPER_PIN=11
+        PWM_PIN0=12
+        PWM_PIN1=13
         SOUND_FREQUENCY=30600
         I2S_FREQUENCY=30600
 
@@ -226,19 +234,20 @@ IF(ZERO)
         PSRAM_SPINLOCK=1
         PSRAM_ASYNC=1
 
-        PSRAM_PIN_SCK=18
-        PSRAM_PIN_MOSI=19
-        PSRAM_PIN_MISO=20
-        PSRAM_PIN_CS=21
+        PSRAM_PIN_CS=2
+        PSRAM_PIN_SCK=3
+        PSRAM_PIN_MOSI=4
+        PSRAM_PIN_MISO=5
 
         # NES Gamepad
-      #  USE_NESPAD
-      #  NES_GPIO_CLK=20
-      #  NES_GPIO_LAT=21
-      #  NES_GPIO_DATA=26
+        USE_NESPAD
+        NES_GPIO_CLK=7
+        NES_GPIO_LAT=8
+        NES_GPIO_DATA=9
+        NES_GPIO_DATA2=10
 
         # VGA 8 pins starts from pin:
-      #  VGA_BASE_PIN=12
+        VGA_BASE_PIN=22
 
         # HDMI 8 pins starts from pin:
         HDMI_BASE_PIN=22
@@ -246,19 +255,23 @@ IF(ZERO)
         #2,3,16
 
         # TFT
-#        TFT_CS_PIN=12
-#        TFT_RST_PIN=14
-#        TFT_LED_PIN=15
-#        TFT_DC_PIN=16
-#        TFT_DATA_PIN=18
-#        TFT_CLK_PIN=19
+        TFT_CS_PIN=22
+        TFT_RST_PIN=24
+        TFT_LED_PIN=25
+        TFT_DC_PIN=26
+        TFT_DATA_PIN=28
+        TFT_CLK_PIN=29
         
         PICO_FLASH_SIZE_BYTES=${FLASH_SIZE}*1024
         DEFAULT_THROTTLING=0
     )
 ELSEIF(MURM2)
+    set(DVI_DEFAULT_SERIAL_CONFIG "murmulator2_cfg" CACHE STRING
+	    "Select a default pin configuration from common_dvi_pin_configs.h")
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         PORT_VERSION="${PORT_VERSION}"
+        DVI_DEFAULT_SERIAL_CONFIG=${DVI_DEFAULT_SERIAL_CONFIG}
         CPU_MHZ=${CPU_MHZ}
 
         KBD_CLOCK_PIN=2
@@ -312,8 +325,12 @@ ELSEIF(MURM2)
         DEFAULT_THROTTLING=0
     )
 ELSE()
+    set(DVI_DEFAULT_SERIAL_CONFIG "murmulator_cfg" CACHE STRING
+	    "Select a default pin configuration from common_dvi_pin_configs.h")
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         PORT_VERSION="${PORT_VERSION}"
+        DVI_DEFAULT_SERIAL_CONFIG=${DVI_DEFAULT_SERIAL_CONFIG}
         CPU_MHZ=${CPU_MHZ}
 
         KBD_CLOCK_PIN=0

@@ -446,6 +446,15 @@ void ESPectrum::bootKeyboard() {
 //=======================================================================================
 // SETUP
 //=======================================================================================
+#ifdef HDMIA
+    #include "common_dvi_pin_configs.h"
+    #include "dvi.h"
+    #define FRAME_WIDTH 320
+    #define FRAME_HEIGHT 240
+    extern struct dvi_inst dvi0;
+    extern "C" uint8_t* getLineBuffer(int line);
+    void render_scanline(uint16_t *scanbuf, uint raster_y);
+#endif
 
 void ESPectrum::setup() 
 {
@@ -501,6 +510,18 @@ void ESPectrum::setup()
     bootKeyboard();
     // printf("End Waiting boot keys\n");
 
+#ifdef HDMIA
+    uint frame_ctr = 0;
+	uint16_t *scanbuf = 0;
+	while (true) {
+		for (uint y = 0; y < FRAME_HEIGHT; ++y) {
+			queue_remove_blocking_u32(&dvi0.q_colour_free, &scanbuf);
+			render_scanline(scanbuf, y);
+			queue_add_blocking_u32(&dvi0.q_colour_valid, &scanbuf);
+		}
+		++frame_ctr;
+	}
+#endif
     //=======================================================================================
     // MEMORY SETUP
     //=======================================================================================
@@ -987,7 +1008,6 @@ IRAM_ATTR void ESPectrum::AYGetSample() {
 }
 
 uint8_t debug_number = 0;
-
 //=======================================================================================
 // MAIN LOOP
 //=======================================================================================
@@ -1123,7 +1143,21 @@ void ESPectrum::loop() {
     if (++sync_cnt & 0x10) {
 ///     ESPoffset = 128 - pwm_audio_rbstats();
         sync_cnt = 0;
-    } 
+    }
+//	uint frame_ctr = 0;
+#ifdef HDMIA
+    static uint16_t *scanbuf = 0;
+///	while (true) {
+		for (int y = 0; y < FRAME_HEIGHT; ++y) {
+			queue_remove_blocking_u32(&dvi0.q_colour_free, &scanbuf);
+          ///  scanbuf = getLineBuffer(y);
+          render_scanline(scanbuf, y);
+          queue_add_blocking_u32(&dvi0.q_colour_valid, &scanbuf);
+		}
+        ESPectrum::vsync = true;
+///		++frame_ctr;
+///	}
+#endif
     totalseconds += time_us_64() - ts_start;
  }
 }

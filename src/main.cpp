@@ -27,6 +27,17 @@
     #include "ps2.h"
 #endif
 
+#ifdef HDMIA
+    #include "common_dvi_pin_configs.h"
+    #include "dvi.h"
+    #define FRAME_WIDTH 320
+    #define FRAME_HEIGHT 240
+    #define DVI_TIMING dvi_timing_640x480p_60hz
+    struct dvi_inst dvi0;
+    #define N_SCANLINE_BUFFERS 6
+    uint16_t __attribute__((aligned(4))) static_scanbuf[N_SCANLINE_BUFFERS][FRAME_WIDTH];
+#endif
+
 #if USE_NESPAD
 #include "nespad.h"
 #endif
@@ -775,10 +786,36 @@ void repeat_me_for_input() {
 #endif
 }
 
+#ifdef HDMIA
+#include "wikimedia_christmas_tree_in_field_320x240_rgb565.h"
+void __scratch_x("render") render_scanline(uint16_t *scanbuf, uint raster_y) {
+	// Use DMA to copy in background line (for speed)
+	uint dma_chan = dma_claim_unused_channel(true);
+    dma_channel_config cfg = dma_channel_get_default_config(dma_chan);
+    channel_config_set_write_increment(&cfg, true);
+    dma_channel_configure(
+    	dma_chan,
+    	&cfg,
+    	scanbuf,
+    	&((const uint16_t*)wikimedia_christmas_tree_in_field_320x240)[raster_y * FRAME_WIDTH],
+    	FRAME_WIDTH / 2,
+    	true
+    );
+    dma_channel_wait_for_finish_blocking(dma_chan);
+    dma_channel_unclaim(dma_chan);
+}
+#endif
+
 void __scratch_x("render") render_core() {
+#ifdef HDMIA
+	dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
+	while (queue_is_empty(&dvi0.q_colour_valid))
+		__wfe();
+	dvi_start(&dvi0);
+	dvi_scanbuf_main_16bpp(&dvi0);
+#else
     multicore_lockout_victim_init();
     graphics_init();
-
     graphics_set_buffer(NULL, DISP_WIDTH, DISP_HEIGHT); /// TODO:
     graphics_set_bgcolor(0x000000);
     graphics_set_flashmode(false, false);
@@ -787,6 +824,7 @@ void __scratch_x("render") render_core() {
         pcm_call();
         tight_loop_contents();
     }
+#endif
     __unreachable();
 }
 
@@ -828,7 +866,19 @@ int main() {
 #else
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
     sleep_ms(10);
+#ifdef HDMIA
+    set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
+	dvi0.timing = &DVI_TIMING;
+	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;
+	dvi_init(&dvi0, next_striped_spin_lock_num(), next_striped_spin_lock_num());
+
+	for (int i = 0; i < N_SCANLINE_BUFFERS; ++i) {
+		void *bufptr = &static_scanbuf[i];
+		queue_add_blocking(&dvi0.q_colour_free, &bufptr);
+	}
+#else
     set_sys_clock_khz(CPU_MHZ * KHZ, true);
+#endif
 #endif
 
 #ifdef KBDUSB
@@ -838,6 +888,7 @@ int main() {
     keyboard_init();
 #endif
 
+#if !ZERO
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     for (int i = 0; i < 6; i++) {
@@ -846,14 +897,18 @@ int main() {
         sleep_ms(33);
         gpio_put(PICO_DEFAULT_LED_PIN, false);
     }
+#endif
 
 #if USE_NESPAD
     nespad_begin(clock_get_hz(clk_sys) / 1000, NES_GPIO_CLK, NES_GPIO_DATA, NES_GPIO_LAT);
 #endif
+#ifdef HDMIA
+    multicore_launch_core1(render_core);
+#else
     sem_init(&vga_start_semaphore, 0, 1);
     multicore_launch_core1(render_core);
     sem_release(&vga_start_semaphore);
-
+#endif
     init_sound();
     pcm_setup(SOUND_FREQUENCY, SOUND_FREQUENCY);
 #ifdef PSRAM
@@ -863,8 +918,6 @@ int main() {
 #ifndef KBDUSB
     keyboard_send(0xFF);
 #endif
-
-    mem_desc_t::reset();
     ESPectrum::setup();
     ESPectrum::loop();
     __unreachable();
