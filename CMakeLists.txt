@@ -336,12 +336,21 @@ ELSEIF(PICO_PC)
         PORT_VERSION="${PORT_VERSION}"
         DVI_DEFAULT_SERIAL_CONFIG=${DVI_DEFAULT_SERIAL_CONFIG}
         CPU_MHZ=${CPU_MHZ}
-        PICO_PC=1
 
+        PICO_PC=1
+        # GP-5  UXT1-10
+        # GP-8  UXT1-6
+        # GP-9  UXT1-5
+        # GP-21 UXT1-4
+        # GP-20 UXT1-3
+
+        # QWST1 3/4 - GP2/3
+
+        # DBG1 1/2
         KBD_CLOCK_PIN=0
         KBD_DATA_PIN=1
 
-        LOAD_WAV_PIO=2 # not implemented
+        LOAD_WAV_PIO=5 # UXT1-10
 
         BEEPER_PIN=26 # not implemented
         PWM_PIN0=27 # R
@@ -355,21 +364,21 @@ ELSEIF(PICO_PC)
         SDCARD_PIN_SPI0_MOSI=7
         SDCARD_PIN_SPI0_CS=22
 
-        #PSRAM
-        # PSRAM_MUTEX=1
-        PSRAM_SPINLOCK=1
-        PSRAM_ASYNC=1
+        #PSRAM           # not implemented
+        PSRAM_SPINLOCK=1 # not implemented
+        PSRAM_ASYNC=1    # not implemented
 
-        PSRAM_PIN_CS=4
-        PSRAM_PIN_SCK=5
-        PSRAM_PIN_MOSI=6
-        PSRAM_PIN_MISO=7
+        PSRAM_PIN_CS=3   # not implemented
+        PSRAM_PIN_SCK=3  # not implemented
+        PSRAM_PIN_MOSI=3 # not implemented
+        PSRAM_PIN_MISO=3 # not implemented
 
         # NES Gamepad
-       # USE_NESPAD
-        NES_GPIO_CLK=3
-        NES_GPIO_LAT=3
-        NES_GPIO_DATA=3
+        USE_NESPAD
+        NES_GPIO_CLK=8    # UXT1-6
+        NES_GPIO_LAT=9    # UXT1-5
+        NES_GPIO_DATA=20  # UXT1-3
+        NES_GPIO_DATA2=21 # UXT1-4
 
         # VGA 8 pins starts from pin:
         VGA_BASE_PIN=12
@@ -377,14 +386,6 @@ ELSEIF(PICO_PC)
         # HDMI 8 pins starts from pin:
         HDMI_BASE_PIN=12
 
-        # TFT
-        TFT_CS_PIN=12
-        TFT_RST_PIN=14
-        TFT_LED_PIN=15
-        TFT_DC_PIN=16
-        TFT_DATA_PIN=18
-        TFT_CLK_PIN=19
-        
         PICO_FLASH_SIZE_BYTES=${FLASH_SIZE}*1024
         DEFAULT_THROTTLING=0
 )
