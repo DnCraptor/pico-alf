@@ -39,7 +39,8 @@ set (PORT_VERSION "1.2.B")
 set(HDMI ON)
 #set(HDMIA ON)
 
-set(ZERO ON)
+set(PICO_PC ON)
+#set(ZERO ON)
 #set (MURM2 ON)
 
 set(KBDUSB ON)
@@ -47,8 +48,7 @@ set(KBDUSB ON)
 set(FLASH_SIZE 2048)
 set(FLASH_SIZE_GREEN ON)
 #set(CPU_MHZ 252)
-set(CPU_MHZ 264)
-#set(CPU_MHZ 378)
+set(CPU_MHZ 378)
 #set(CPU_MHZ 408)
 
 set(CMAKE_C_STANDARD 11)
@@ -92,6 +92,8 @@ add_executable(${PROJECT_NAME} ${SRC})
 if (PICO_BOARD MATCHES "pico2")
     if (MURM20)
         SET(BUILD_NAME "m2p2-${PROJECT_NAME}-${CPU_MHZ}")
+    elseif (PICO_PC)
+        SET(BUILD_NAME "PCp2-${PROJECT_NAME}-${CPU_MHZ}")
     else ()
         SET(BUILD_NAME "m1p2-${PROJECT_NAME}-${CPU_MHZ}")
     endif ()
@@ -100,6 +102,8 @@ else ()
         SET(BUILD_NAME "m2p1-${PROJECT_NAME}-${CPU_MHZ}")
     elseif (ZERO)
         SET(BUILD_NAME "z0p1-${PROJECT_NAME}-${CPU_MHZ}")
+    elseif (PICO_PC)
+        SET(BUILD_NAME "PCp1-${PROJECT_NAME}-${CPU_MHZ}")
     else ()
         SET(BUILD_NAME "m1p1-${PROJECT_NAME}-${CPU_MHZ}")
     endif ()
@@ -323,7 +327,66 @@ ELSEIF(MURM2)
         
         PICO_FLASH_SIZE_BYTES=${FLASH_SIZE}*1024
         DEFAULT_THROTTLING=0
-    )
+)
+ELSEIF(PICO_PC)
+    set(DVI_DEFAULT_SERIAL_CONFIG "rp240_pico_pc_cfg" CACHE STRING
+	    "Select a default pin configuration from common_dvi_pin_configs.h")
+
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        PORT_VERSION="${PORT_VERSION}"
+        DVI_DEFAULT_SERIAL_CONFIG=${DVI_DEFAULT_SERIAL_CONFIG}
+        CPU_MHZ=${CPU_MHZ}
+
+        KBD_CLOCK_PIN=0
+        KBD_DATA_PIN=1
+
+        LOAD_WAV_PIO=2 # not implemented
+
+        BEEPER_PIN=26 # not implemented
+        PWM_PIN0=27 # R
+        PWM_PIN1=28 # L
+        SOUND_FREQUENCY=30600
+        I2S_FREQUENCY=30600
+
+        # SDCARD
+        SDCARD_PIN_SPI0_MISO=4
+        SDCARD_PIN_SPI0_SCK=6
+        SDCARD_PIN_SPI0_MOSI=7
+        SDCARD_PIN_SPI0_CS=22
+
+        #PSRAM
+        # PSRAM_MUTEX=1
+        PSRAM_SPINLOCK=1
+        PSRAM_ASYNC=1
+
+        PSRAM_PIN_CS=4
+        PSRAM_PIN_SCK=5
+        PSRAM_PIN_MOSI=6
+        PSRAM_PIN_MISO=7
+
+        # NES Gamepad
+       # USE_NESPAD
+        NES_GPIO_CLK=3
+        NES_GPIO_LAT=3
+        NES_GPIO_DATA=3
+
+        # VGA 8 pins starts from pin:
+        VGA_BASE_PIN=12
+
+        # HDMI 8 pins starts from pin:
+        HDMI_BASE_PIN=12
+
+        # TFT
+        TFT_CS_PIN=12
+        TFT_RST_PIN=14
+        TFT_LED_PIN=15
+        TFT_DC_PIN=16
+        TFT_DATA_PIN=18
+        TFT_CLK_PIN=19
+        
+        PICO_FLASH_SIZE_BYTES=${FLASH_SIZE}*1024
+        DEFAULT_THROTTLING=0
+)
 ELSE()
     set(DVI_DEFAULT_SERIAL_CONFIG "murmulator_cfg" CACHE STRING
 	    "Select a default pin configuration from common_dvi_pin_configs.h")
