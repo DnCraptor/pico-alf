@@ -33,13 +33,13 @@ set (PORT_VERSION "1.2.B")
 
 ##set(TV ON)
 #set(SOFTTV ON)
-#set(TFT ON)
+set(TFT ON)
 #set(TFT_INV 1)
-#set(ILI9341 ON)
-set(HDMI ON)
+set(ILI9341 ON)
+#set(HDMI ON)
 #set(HDMIA ON)
 
-set(PICO_PC ON)
+#set(PICO_PC ON)
 #set(ZERO ON)
 #set (MURM2 ON)
 
@@ -415,6 +415,7 @@ ELSE()
         SDCARD_PIN_SPI0_MISO=4
         
         PSRAM
+        PSRAM_NO_FUGE
         # PSRAM_MUTEX=1
         PSRAM_SPINLOCK=1
         PSRAM_ASYNC=1

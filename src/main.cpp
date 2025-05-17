@@ -718,10 +718,39 @@ void kbdExtraMapping(fabgl::VirtualKey virtualKey, bool pressed) {
     kbdPushData(virtualKey, pressed);
 }
 
+typedef struct mod2key_s {
+    hid_keyboard_modifier_bm_t mod;
+    enum fabgl::VirtualKey     key;
+} mod2key_t;
+
+static mod2key_t mod2key[] = {
+    { KEYBOARD_MODIFIER_LEFTALT,    fabgl::VirtualKey::VK_LALT },
+    { KEYBOARD_MODIFIER_RIGHTALT,   fabgl::VirtualKey::VK_RALT },
+    { KEYBOARD_MODIFIER_LEFTCTRL,   fabgl::VirtualKey::VK_LCTRL},
+    { KEYBOARD_MODIFIER_RIGHTCTRL,  fabgl::VirtualKey::VK_RCTRL},
+    { KEYBOARD_MODIFIER_RIGHTSHIFT, fabgl::VirtualKey::VK_RSHIFT},
+    { KEYBOARD_MODIFIER_LEFTSHIFT,  fabgl::VirtualKey::VK_LSHIFT},
+    { KEYBOARD_MODIFIER_RIGHTGUI,   fabgl::VirtualKey::VK_F2},
+    { KEYBOARD_MODIFIER_LEFTGUI,    fabgl::VirtualKey::VK_F1},
+};
+
 void __not_in_flash_func(process_kbd_report)(
     hid_keyboard_report_t const *report,
     hid_keyboard_report_t const *prev_report
 ) {
+    for (int i = 0; i < sizeof(mod2key) / sizeof(mod2key[0]); ++i) {
+        if (report->modifier & mod2key[i].mod) {
+            if (!pressed_key[mod2key[i].key]) {
+                pressed_key[mod2key[i].key] = mod2key[i].key;
+                kbdExtraMapping(mod2key[i].key, true);
+            }
+        } else {
+            if (pressed_key[mod2key[i].key]) {
+                kbdExtraMapping(mod2key[i].key, false);
+                pressed_key[mod2key[i].key] = 0;
+            }
+        }
+    }
     for (uint8_t pkc: prev_report->keycode) {
         if (!pkc) continue;
         bool key_still_pressed = false;
@@ -905,9 +934,6 @@ int main() {
 #ifdef HDMIA
     multicore_launch_core1(render_core);
 #else
-    sem_init(&vga_start_semaphore, 0, 1);
-    multicore_launch_core1(render_core);
-    sem_release(&vga_start_semaphore);
 #endif
     init_sound();
     pcm_setup(SOUND_FREQUENCY, SOUND_FREQUENCY);
@@ -919,6 +945,9 @@ int main() {
     keyboard_send(0xFF);
 #endif
     ESPectrum::setup();
+    sem_init(&vga_start_semaphore, 0, 1);
+    multicore_launch_core1(render_core);
+    sem_release(&vga_start_semaphore);
     ESPectrum::loop();
     __unreachable();
 }

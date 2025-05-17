@@ -120,6 +120,11 @@ static void nvs_get_u16(const char* key, uint16_t& v, const vector<string>& sts)
     }
 }
 
+#if TFT
+extern "C" uint8_t TFT_FLAGS;
+extern "C" uint8_t TFT_INVERSION;
+#endif
+
 // Read config from FS
 void Config::load() {
     string nvs = MOUNT_POINT_SD STORAGE_NVS;
@@ -145,6 +150,10 @@ void Config::load() {
         }
         fclose2(handle);
 
+        #if TFT
+        nvs_get_u8("TFT_FLAGS", TFT_FLAGS, sts);
+        nvs_get_u8("TFT_INVERSION", TFT_INVERSION, sts);
+        #endif
         nvs_get_str("arch", arch, sts);
         nvs_get_str("romSet", romSet, sts);
         nvs_get_str("pref_arch", pref_arch, sts);
@@ -240,6 +249,10 @@ void Config::save() {
     string nvs = MOUNT_POINT_SD STORAGE_NVS;
     FIL* handle = fopen2(nvs.c_str(), FA_WRITE | FA_CREATE_ALWAYS);
     if (handle) {
+        #if TFT
+        nvs_set_u8(handle,"TFT_FLAGS", TFT_FLAGS);
+        nvs_set_u8(handle,"TFT_INVERSION", TFT_INVERSION);
+        #endif
         nvs_set_str(handle,"arch",arch.c_str());
         nvs_set_str(handle,"romSet",romSet.c_str());
         nvs_set_str(handle,"pref_arch",pref_arch.c_str());

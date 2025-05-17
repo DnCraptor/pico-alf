@@ -32,7 +32,11 @@
 #define MADCTL_BGR_PIXEL_ORDER (1<<3)
 #define MADCTL_ROW_COLUMN_EXCHANGE (1<<5)
 #define MADCTL_COLUMN_ADDRESS_ORDER_SWAP (1<<6)
+#define MADCTL_MY  (1 << 7) // Row Address Order (Y flip)
+#define MADCTL_MX  (1 << 6) // Column Address Order (X flip)
 
+uint8_t TFT_FLAGS = MADCTL_ROW_COLUMN_EXCHANGE | MADCTL_BGR_PIXEL_ORDER;
+uint8_t TFT_INVERSION = 0;
 
 #define CHECK_BIT(var, pos) (((var)>>(pos)) & 1)
 
@@ -48,27 +52,6 @@ static int graphics_buffer_shift_x = 0;
 static int graphics_buffer_shift_y = 0;
 
 enum graphics_mode_t graphics_mode = GRAPHICSMODE_DEFAULT;
-
-static const uint8_t init_seq[] = {
-    1, 20, 0x01, // Software reset
-    1, 10, 0x11, // Exit sleep mode
-    2, 2, 0x3a, 0x55, // Set colour mode to 16 bit
-#ifdef ILI9341
-    // ILI9341
-    2, 0, 0x36, MADCTL_ROW_COLUMN_EXCHANGE | MADCTL_BGR_PIXEL_ORDER, // Set MADCTL
-#else
-    // ST7789
-    2, 0, 0x36, MADCTL_COLUMN_ADDRESS_ORDER_SWAP | MADCTL_ROW_COLUMN_EXCHANGE, // Set MADCTL
-#endif
-    5, 0, 0x2a, 0x00, 0x00, SCREEN_WIDTH >> 8, SCREEN_WIDTH & 0xff, // CASET: column addresses
-    5, 0, 0x2b, 0x00, 0x00, SCREEN_HEIGHT >> 8, SCREEN_HEIGHT & 0xff, // RASET: row addresses
-    1, 2, 0x20, // Inversion OFF
-    1, 2, 0x13, // Normal display on, then 10 ms delay
-    1, 2, 0x29, // Main screen turn on, then wait 500 ms
-    0 // Terminate list
-};
-// Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
-// Note the delays have been shortened a little
 
 static inline void lcd_set_dc_cs(const bool dc, const bool cs) {
     sleep_us(5);
@@ -155,15 +138,7 @@ void create_dma_channel() {
 ///#define RGB888(c) ((R(c) << 14) | (G(c) << 9) | B(c) << 3)
 
 //RRRR RGGG GGGB BBBB
-#ifdef ILI9341
 #define RGB888(r, g, b) ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
-#else
-#if TFT_INV
-#define RGB888(r, g, b) ((((~r & 0xFF) >> 3) << 11) | (((~g & 0xFF) >> 2) << 5) | ((~b & 0xFF) >> 3))
-#else
-#define RGB888(r, g, b) ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
-#endif
-#endif
 
 static const uint16_t textmode_palette_tft[17] = {
     //R, G, B
@@ -202,6 +177,69 @@ void graphics_init() {
 
     gpio_put(TFT_CS_PIN, 1);
     gpio_put(TFT_RST_PIN, 1);
+
+    const uint8_t init_seq[] = {
+     // data size, sleep, command, data
+        1, 20, 0x01, // Software reset
+        1, 10, 0x11, // Exit sleep mode
+        // POWER CONTROL A
+//        5, 0, 0xCB, 0x39, 0x2C, 0x00, 0x34, 0x02,
+        // POWER CONTROL B
+//        3, 0, 0xCF, 0x00, 0xC1, 0x30,
+        // DRIVER TIMING CONTROL A
+//        3, 0, 0xE8, 0x85, 0x00, 0x78,
+        // DRIVER TIMING CONTROL B
+//        2, 0, 0xEA, 0x00, 0x00,
+        // POWER ON SEQUENCE CONTROL
+//        4, 0, 0xED, 0x64, 0x03, 0x12, 0x81,
+        // PUMP RATIO CONTROL
+//        1, 0, 0xF7, 0x20,
+        // POWER CONTROL,VRH[5:0]
+//        1, 0, 0xC0, 0x23,
+        // POWER CONTROL,SAP[2:0];BT[3:0]
+//        1, 0, 0xC1, 0x10,
+        // VCM CONTROL
+//        2, 0, 0xC5, 0x3E, 0x28,
+        // VCM CONTROL 2
+//        1, 0, 0xC7, 0x86,
+        // Set colour mode to 16 bit
+        2, 2, 0x3A, 0x55,
+        // FRAME RATIO CONTROL, STANDARD RGB COLOR
+    //    2, 0, 0xB1, 0x00, 0b10011, //100Гц 
+        // DISPLAY FUNCTION CONTROL (0xB6)
+        /*  - Назначение: Настройка функций дисплея (сканирование, интерфейс и др.).
+            - Параметры (для ILI9341):
+              - `0x08`: 
+                - Бит 3: `0` — Scan direction = нормальный (сверху вниз).
+                - Бит 2: `0` — RGB/BGR порядок по умолчанию.
+              - `0x82`:
+                - Бит 7: `1` — Включить интерфейс Display Data Channel (DDC).
+            - `0x27`:
+            - Зарезервировано для специфичных настроек дисплея. */
+//        3, 0, 0xB6, 0x08, 0x82, 0x27,
+        // GAMMA CURVE SELECTED
+//        1, 0, 0x26, 0x01,
+        // POSITIVE GAMMA CORRECTION
+//        15, 0, 0xE0, 0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00,
+        // NEGATIVE GAMMA CORRECTION
+//        15, 0, 0xE1, 0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F,
+        1, 2, 0x20 | TFT_INVERSION, // Inversion ON/OFF
+    #ifdef ILI9341
+        // ILI9341
+        2, 0, 0x36, TFT_FLAGS, // Set MADCTL
+    #else
+        // ST7789
+        2, 0, 0x36, MADCTL_COLUMN_ADDRESS_ORDER_SWAP | TFT_FLAGS, // Set MADCTL
+    #endif
+        5, 0, 0x2a, 0x00, 0x00, SCREEN_WIDTH >> 8, SCREEN_WIDTH & 0xff, // CASET: column addresses
+        5, 0, 0x2b, 0x00, 0x00, SCREEN_HEIGHT >> 8, SCREEN_HEIGHT & 0xff, // RASET: row addresses
+        1, 2, 0x13, // Normal display on, then 10 ms delay
+        1, 2, 0x29, // Main screen turn on, then wait 500 ms
+        0 // Terminate list
+    };
+    // Format: cmd length (including cmd byte), post delay in units of 5 ms, then cmd payload
+    // Note the delays have been shortened a little
+    
     lcd_init(init_seq);
     gpio_put(TFT_LED_PIN, 1);
 
