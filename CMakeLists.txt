@@ -13,7 +13,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico CACHE STRING "Board type")
+set(PICO_BOARD pico2 CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
 project(alf C CXX ASM)
@@ -29,19 +29,19 @@ option(SOFTTV "Enable TV soft composite output" OFF)
 
 set (PORT_VERSION "1.2.B")
 
-#set(I2S ON)
+set(I2S ON)
 
 ##set(TV ON)
 #set(SOFTTV ON)
-set(TFT ON)
+#set(TFT ON)
 #set(TFT_INV 1)
-set(ILI9341 ON)
-#set(HDMI ON)
+#set(ILI9341 ON)
+set(HDMI ON)
 #set(HDMIA ON)
 
 #set(PICO_PC ON)
 #set(ZERO ON)
-#set (MURM2 ON)
+set (MURM20 ON)
 
 set(KBDUSB ON)
 
@@ -269,7 +269,7 @@ IF(ZERO)
         PICO_FLASH_SIZE_BYTES=${FLASH_SIZE}*1024
         DEFAULT_THROTTLING=0
     )
-ELSEIF(MURM2)
+ELSEIF(MURM20)
     set(DVI_DEFAULT_SERIAL_CONFIG "murmulator2_cfg" CACHE STRING
 	    "Select a default pin configuration from common_dvi_pin_configs.h")
 
