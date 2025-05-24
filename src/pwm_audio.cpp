@@ -60,7 +60,7 @@ esp_err_t pwm_audio_write(
 static i2s_config_t i2s_config = {
 		.sample_freq = SOUND_FREQUENCY, 
 		.channel_count = 2,
-#ifdef MURM2
+#ifdef MURM20
 		.data_pin = BEEPER_PIN,
 		.clock_pin_base = PWM_PIN0,
 #else
