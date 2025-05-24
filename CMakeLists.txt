@@ -27,7 +27,7 @@ option(HDMI "Enable HDMI display" OFF)
 option(TV "Enable TV composite output" OFF)
 option(SOFTTV "Enable TV soft composite output" OFF)
 
-set (PORT_VERSION "1.2.B")
+set (PORT_VERSION "1.2.C")
 
 set(I2S ON)
 
@@ -36,7 +36,7 @@ set(I2S ON)
 #set(TFT ON)
 #set(TFT_INV 1)
 #set(ILI9341 ON)
-set(HDMI ON)
+#set(HDMI ON)
 #set(HDMIA ON)
 
 #set(PICO_PC ON)
@@ -277,6 +277,7 @@ ELSEIF(MURM20)
         PORT_VERSION="${PORT_VERSION}"
         DVI_DEFAULT_SERIAL_CONFIG=${DVI_DEFAULT_SERIAL_CONFIG}
         CPU_MHZ=${CPU_MHZ}
+        MURM20=1
 
         KBD_CLOCK_PIN=2
         KBD_DATA_PIN=3
