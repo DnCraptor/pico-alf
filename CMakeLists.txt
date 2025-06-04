@@ -13,7 +13,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_BOARD pico CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
 project(alf C CXX ASM)
@@ -36,19 +36,19 @@ set(I2S ON)
 #set(TFT ON)
 #set(TFT_INV 1)
 #set(ILI9341 ON)
-#set(HDMI ON)
+set(HDMI ON)
 #set(HDMIA ON)
 
 #set(PICO_PC ON)
-#set(ZERO ON)
-set (MURM20 ON)
+set(ZERO ON)
+#set (MURM20 ON)
 
 set(KBDUSB ON)
 
 set(FLASH_SIZE 2048)
 set(FLASH_SIZE_GREEN ON)
-#set(CPU_MHZ 252)
-set(CPU_MHZ 378)
+set(CPU_MHZ 252)
+#set(CPU_MHZ 378)
 #set(CPU_MHZ 408)
 
 set(CMAKE_C_STANDARD 11)
@@ -221,9 +221,9 @@ IF(ZERO)
 
         LOAD_WAV_PIO=14
 
-        BEEPER_PIN=11
-        PWM_PIN0=12
-        PWM_PIN1=13
+        PWM_PIN0=11
+        PWM_PIN1=12
+        BEEPER_PIN=13
         SOUND_FREQUENCY=30600
         I2S_FREQUENCY=30600
 
